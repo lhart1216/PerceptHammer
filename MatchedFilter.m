@@ -4,9 +4,9 @@ function [locs] = MatchedFilter(sig, fs, template, fEst, search)
 % segments of time where there are missing matches and searches for
 % best-fit
 % INPUTS:
-% sig = signal
+% sig = signal (expects column vector)
 % fs = sampling rate (Hz)
-% template = the template of noise used to find hte matches
+% template = the template of noise used to find the matches (expects column vector)
 % fEst = estimated rate of noise (Hz) (helps set a threshold on how
 %        frequently can find a match)
 % search = boolean whether want to use the fact that the noise is regular

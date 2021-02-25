@@ -4,7 +4,7 @@ function [sigClean, artRem, artLog] = RemoveNoiseTempMatch(sigOrig, fs, tSeed, f
 % numbered. Numbered template matches are also output so that user can
 % reject template matches and recreate the noise subtraction if desired.
 % INPUTS:
-% sigOrig = signal to clean
+% sigOrig = signal to clean (expects column vector)
 % fs = sampling rate (Hz)
 % tSeed = vector with the start / stop of an example of the noise to be
 %         used as a seed for template matching (seconds)
@@ -33,7 +33,7 @@ else
 end
 
 %% establishing template and the signal
-template = sig(round(tSeed(1)*fs): round(tSeed(2)*fs))';
+template = sig(round(tSeed(1)*fs): round(tSeed(2)*fs));
 pad = length(template);
 sig = [zeros(pad,1); sig; zeros(pad,1)];
 
@@ -43,7 +43,7 @@ for j = 1:5
     iTemp = (1:(length(template)));
     iMatches = repmat(locs, 1, length(iTemp)) + repmat(iTemp, length(locs),1) - 1;
     matches = sig(iMatches);
-    template = mean(matches,1);
+    template = mean(matches,1)';
 end
 
 %% collects final round of matches based on the updated template
@@ -53,7 +53,7 @@ locs = MatchedFilter(sig, fs, template, fEst, search);
 locs = locs - pad;
 sig = sig((pad+1):(end-pad));
 
-artRem(1,:) = zeros(1,length(sig),1);
+artRem(:,1) = zeros(1,length(sig),1);
 
 for j = 1:length(locs)
     
@@ -61,15 +61,15 @@ for j = 1:length(locs)
     iInc = (iFullTemp>0) & (iFullTemp<=length(sig));
     c = 1;
     if scaled
-        c=regress(sig(iFullTemp(iInc)), template(iInc)');
+        c=regress(sig(iFullTemp(iInc)), template(iInc));
     end
-    artRem(1,iFullTemp(iInc)) = artRem(1,iFullTemp(iInc)) + template(iInc)*c;
-    artLog{j,1}=[iFullTemp(iInc)', template(iInc)'];
+    artRem(iFullTemp(iInc)) = artRem(iFullTemp(iInc)) + template(iInc)*c;
+    artLog{j,1}=[iFullTemp(iInc)', template(iInc)];
 end
 
 %% if searching, look for additional off-regular frequency occurances
 if search
-    newLocs = MatchedFilter([zeros(pad,1); sig - artRem(1,:)'; zeros(pad,1)], fs, template, [], 0);
+    newLocs = MatchedFilter([zeros(pad,1); sig - artRem; zeros(pad,1)], fs, template, [], 0);
     newLocs = newLocs - pad;
     for j = 1:length(newLocs)
         
@@ -77,10 +77,10 @@ if search
         iInc = (iFullTemp>0) & (iFullTemp<=length(sig));
         c = 1;
         if scaled
-            c=regress(sig(iFullTemp(iInc)), template(iInc)');
+            c=regress(sig(iFullTemp(iInc)), template(iInc));
         end
-        artRem(1,iFullTemp(iInc)) = artRem(1,iFullTemp(iInc)) + template(iInc)*c;
-        artLog{end+1,1}=[iFullTemp(iInc)', template(iInc)'*c];
+        artRem(iFullTemp(iInc)) = artRem(iFullTemp(iInc)) + template(iInc)*c;
+        artLog{end+1,1}=[iFullTemp(iInc)', template(iInc)*c];
     end
     
     [locs, idx] = sort([locs; newLocs]);
@@ -93,8 +93,8 @@ if pl
     hold on;
     pO = PlotTempMatch(sigOrig, fs, template, locs, scaled);
     set(gca, 'xlim', [0 20]);
-    sigClean = sigOrig-artRem(1,:)';
-    pN = plot((1:length(sigOrig))/fs, sigOrig-artRem(1,:)'-max(sigOrig)+min(sigOrig), 'b');
+    sigClean = sigOrig-artRem;
+    pN = plot((1:length(sigOrig))/fs, sigOrig-artRem-max(sigOrig)+min(sigOrig), 'b');
     legend([pO, pN], 'original signal', 'noise removed');
     set(findall(gcf,'-property','FontSize'),'FontSize',16)
 end

@@ -1,7 +1,7 @@
 function [pSig, pTemps] = PlotTempMatch(sig, fs, template, locs, scaled)
 % Plots the template matches on top of the initial signal
 % INPUT
-% sig = signal
+% sig = signal (expects column vector)
 % fs = sampling rate
 % template = template that was matched
 % locs = index where match is
@@ -21,7 +21,7 @@ for j = 1:length(locs)
     iInc = (iFullTemp>0) & (iFullTemp <= length(sig));
     c = 1;
     if scaled
-        c=regress(sig(iFullTemp(iInc)), template(iInc)');
+        c=regress(sig(iFullTemp(iInc)), template(iInc));
     end
     pTemps(j)=plot(iFullTemp(iInc)/fs, template(iInc), 'linewidth', 2, 'color',col(iCol,:) );
     text(locs(j)/fs, min(template) - 0.1*range(template) , num2str(j), 'color', col(iCol,:));
