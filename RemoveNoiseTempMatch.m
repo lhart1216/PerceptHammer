@@ -87,13 +87,15 @@ if search
     artLog = artLog(idx);
 end
 
+%% final sig
+sigClean = sigOrig-artRem;
+
 %% plotting
 if pl
     figure;
     hold on;
     pO = PlotTempMatch(sigOrig, fs, template, locs, scaled);
     set(gca, 'xlim', [0 20]);
-    sigClean = sigOrig-artRem;
     pN = plot((1:length(sigOrig))/fs, sigOrig-artRem-max(sigOrig)+min(sigOrig), 'b');
     legend([pO, pN], 'original signal', 'noise removed');
     set(findall(gcf,'-property','FontSize'),'FontSize',16)
