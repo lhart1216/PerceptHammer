@@ -15,9 +15,11 @@ function [locs] = MatchedFilter(sig, fs, template, fEst, search)
 % locs = index numbers of the
 
 warning('off', 'signal:findpeaks:largeMinPeakHeight');
-T = 0.75; % R2 threshold for being a match (not search matches)
+    T = 0.75; % R2 threshold for being a match (not search matches)
+
 mFilt = filter(template(end:-1:1), 1, sig);
 mFiltNorm = mFilt/length(template)./sqrt(filter(ones(size(template)),1,sig.^2)/length(template) * sum(template.^2)/length(template));
+
 
 if ~isempty(fEst) % if want to use an expecte frequency to cap
     buff =  round(fs/fEst*.2);
@@ -54,11 +56,45 @@ if ~isempty(fEst) % if want to use an expecte frequency to cap
                     plotted_newLocsTemp(iNvar,(1:length(template))+idx-length(template)) = template;
                 end
             end
-            [~,iBestMatch] = min(sum(abs(plotted_newLocsTemp - repmat(sig',length(Nvar),1)),2));
+            % forces there to choose at least one template
+            boolNotEmpty = cell2mat(cellfun(@(x)(~isempty(x)), newLocsTemp, 'uniformoutput', 0));
+            plotted_newLocsTemp = plotted_newLocsTemp(boolNotEmpty,:);
+            newLocsTemp = newLocsTemp(boolNotEmpty);
+            [~,iBestMatch] = min(sum(abs(plotted_newLocsTemp - repmat(sig',length(newLocsTemp),1)),2));
             newLocs = [newLocs; newLocsTemp{iBestMatch}];
         end
         locs = sort([locs; newLocs]);
         
+        
+        % checks front and end of sig and looks for partial matches where
+        % would expect
+        tempEnd = template((ceil(length(template)/2)):length(template));
+        iEnd = locs(1) - median(d) + buff;
+        iStart = iEnd - length(tempEnd) - 2*buff + 1;
+        if iStart > 0 && sum(sig(iStart:iEnd)==0)/(iEnd-iStart+1) < .75
+            excerpt = zeros(size(sig));
+            excerpt(iStart:iEnd) = sig(iStart:iEnd)-mean(sig(iStart:iEnd));
+            mFilt = filter(tempEnd(end:-1:1) - mean(tempEnd), 1, excerpt);
+            mFiltNorm = mFilt/length(tempEnd)./sqrt(filter(ones(size(tempEnd)),1,excerpt.^2)/length(tempEnd) * sum(tempEnd.^2)/length(tempEnd));
+            mFiltNorm(isnan(mFiltNorm))=0;
+            [~,idx] = max(mFiltNorm);
+            locs = sort([locs; idx]);
+        end        
+        
+        % finds last, loc, searches for the first half of template around
+        tempBeg = template(1:int8(floor(length(template)/2)));
+        iEnd = locs(end) - median(d) + buff;
+        iStart = iEnd - length(tempBeg) - 2*buff + 1;
+        if iEnd <= length(sig) && sum(sig(iStart:iEnd)==0)/(iEnd-iStart+1) < .75
+            excerpt = zeros(size(sig));
+            excerpt(iStart:iEnd) = sig(iStart:iEnd)-mean(sig(iStart:iEnd));
+            mFilt = filter(tempBeg(end:-1:1) - mean(tempBeg), 1, excerpt);
+            mFiltNorm = mFilt/length(tempBeg)./sqrt(filter(ones(size(tempBeg)),1,excerpt.^2)/length(tempBeg) * sum(tempBeg.^2)/length(tempBeg));
+            mFiltNorm(isnan(mFiltNorm))=0;
+            [~,idx] = max(mFiltNorm);
+            locs = sort([locs; idx + length(template) - length(tempBeg)]);
+        end
+      
     end
 else % if don't want limits on how often can have match
     [~, locs] = findpeaks(mFiltNorm, 'minpeakDistance', length(template), 'MinPeakHeight', T);

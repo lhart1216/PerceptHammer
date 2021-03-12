@@ -1,4 +1,4 @@
-function [sigClean, artRem, artLog] = RemoveNoiseTempMatch(sigOrig, fs, tSeed, fEst, tInc, search, scaled, pl)
+function [sigClean, artRem, artLog, template] = RemoveNoiseTempMatch(sigOrig, fs, tSeed, fEst, tInc, search, scaled, pl)
 % Takes a signal and removes uses template matching to remove noise. Noise
 % needs to occur regularly. Plots a graph of the template matches which are
 % numbered. Numbered template matches are also output so that user can
