@@ -1,4 +1,6 @@
 function [sigClean, artRem, artLog, template] = RemoveNoiseTempMatch(sigOrig, fs, tSeed, fEst, tInc, search, scaled, pl)
+%%% COMMENTING NEEDS UPDATING
+
 % Takes a signal and removes uses template matching to remove noise. Noise
 % needs to occur regularly. Plots a graph of the template matches which are
 % numbered. Numbered template matches are also output so that user can
@@ -37,9 +39,11 @@ template = sig(round(tSeed(1)*fs): round(tSeed(2)*fs));
 pad = length(template);
 sig = [zeros(pad,1); sig; zeros(pad,1)];
 
+T = FindMatchedFiltThresh(sig, fs, template, fEst);
+
 %% goes through and finds matches based on template, updating template
 for j = 1:5
-    locs = MatchedFilter(sig, fs, template, fEst, 0);
+    locs = MatchedFilter(sig, fs, template, fEst, 0, T);
     iTemp = (1:(length(template)));
     iMatches = repmat(locs, 1, length(iTemp)) + repmat(iTemp, length(locs),1) - 1;
     matches = sig(iMatches);
@@ -47,7 +51,7 @@ for j = 1:5
 end
 
 %% collects final round of matches based on the updated template
-locs = MatchedFilter(sig, fs, template, fEst, search);
+locs = MatchedFilter(sig, fs, template, fEst, search, T);
 
 %% subtracts noise from signal
 locs = locs - pad;
@@ -69,7 +73,7 @@ end
 
 %% if searching, look for additional off-regular frequency occurances
 if search
-    newLocs = MatchedFilter([zeros(pad,1); sig - artRem; zeros(pad,1)], fs, template, [], 0);
+    newLocs = MatchedFilter([zeros(pad,1); sig - artRem; zeros(pad,1)], fs, template, [], 0, 0.75);
     newLocs = newLocs - pad;
     for j = 1:length(newLocs)
         
@@ -95,9 +99,16 @@ if pl
     figure;
     hold on;
     pO = PlotTempMatch(sigOrig, fs, template, locs, scaled);
+    ax = gca;
     set(gca, 'xlim', [0 20]);
     pN = plot((1:length(sigOrig))/fs, sigOrig-artRem-max(sigOrig)+min(sigOrig), 'b');
     legend([pO, pN], 'original signal', 'noise removed');
     set(findall(gcf,'-property','FontSize'),'FontSize',16)
+    pan xon;
+    axes('position', [.7 .15 .2 .2]);
+    plot(template, 'k', 'linewidth', 2);
+    box on;
+    set(gca, 'xlim', [0 length(template)], 'xtick',[], 'ytick', [], 'xticklabel',[], 'yticklabel',[]);
+    
 end
 end
