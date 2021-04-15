@@ -1,4 +1,6 @@
-function [locs] = MatchedFilter(sig, fs, template, fEst, search)
+function [locs] = MatchedFilter(sig, fs, template, fEst, search, varargin)
+%%% COMMENTING NEEDS UPDATING
+
 % Takes a signal and used a matched filter to find locations where noise
 % exists. Also has option if the noise occurs regularly, to identify
 % segments of time where there are missing matches and searches for
@@ -12,18 +14,27 @@ function [locs] = MatchedFilter(sig, fs, template, fEst, search)
 % search = boolean whether want to use the fact that the noise is regular
 %          to search in between long inter-event lengths
 % OUTPUTS:
-% locs = index numbers of the
+% locs = index numbers of the matches
 
 warning('off', 'signal:findpeaks:largeMinPeakHeight');
+if isempty(varargin)
     T = 0.75; % R2 threshold for being a match (not search matches)
+else
+    T = varargin{1};
+end
 
 mFilt = filter(template(end:-1:1), 1, sig);
 mFiltNorm = mFilt/length(template)./sqrt(filter(ones(size(template)),1,sig.^2)/length(template) * sum(template.^2)/length(template));
 
-
 if ~isempty(fEst) % if want to use an expecte frequency to cap
-    buff =  round(fs/fEst*.2);
-    [~, locs] = findpeaks(mFiltNorm, 'minpeakDistance', 1/fEst/2*fs, 'MinPeakHeight', T);
+    buff =  round(fs/min(fEst)*.2);
+    
+    if length(fEst) == 1
+        tMin=1/fEst/2;
+    else
+        tMin = 0.9/max(fEst);
+    end
+    [~, locs] = findpeaks(mFiltNorm, 'minpeakDistance', tMin*fs, 'MinPeakHeight', T);
     
     % if trying to search between long inter-match times to find additional matches
     if search
@@ -77,13 +88,15 @@ if ~isempty(fEst) % if want to use an expecte frequency to cap
             mFilt = filter(tempEnd(end:-1:1) - mean(tempEnd), 1, excerpt);
             mFiltNorm = mFilt/length(tempEnd)./sqrt(filter(ones(size(tempEnd)),1,excerpt.^2)/length(tempEnd) * sum(tempEnd.^2)/length(tempEnd));
             mFiltNorm(isnan(mFiltNorm))=0;
-            [~,idx] = max(mFiltNorm);
-            locs = sort([locs; idx]);
+            [M,idx] = max(mFiltNorm);
+            if M > T
+                locs = sort([locs; idx]);
+            end
         end        
         
         % finds last, loc, searches for the first half of template around
         tempBeg = template(1:int8(floor(length(template)/2)));
-        iEnd = locs(end) - median(d) + buff;
+        iEnd = locs(end) + median(d) + buff;
         iStart = iEnd - length(tempBeg) - 2*buff + 1;
         if iEnd <= length(sig) && sum(sig(iStart:iEnd)==0)/(iEnd-iStart+1) < .75
             excerpt = zeros(size(sig));
@@ -91,12 +104,14 @@ if ~isempty(fEst) % if want to use an expecte frequency to cap
             mFilt = filter(tempBeg(end:-1:1) - mean(tempBeg), 1, excerpt);
             mFiltNorm = mFilt/length(tempBeg)./sqrt(filter(ones(size(tempBeg)),1,excerpt.^2)/length(tempBeg) * sum(tempBeg.^2)/length(tempBeg));
             mFiltNorm(isnan(mFiltNorm))=0;
-            [~,idx] = max(mFiltNorm);
-            locs = sort([locs; idx + length(template) - length(tempBeg)]);
+            [M,idx] = max(mFiltNorm);
+            if M >T
+                locs = sort([locs; idx + length(template) - length(tempBeg)]);
+            end
         end
       
     end
-else % if don't want limits on how often can have match
+else % if don't want limits on how often can have match <-- IS THIS NEEDED?
     [~, locs] = findpeaks(mFiltNorm, 'minpeakDistance', length(template), 'MinPeakHeight', T);
 end
 locs = locs - length(template)+1;
