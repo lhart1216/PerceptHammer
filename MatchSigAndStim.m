@@ -46,7 +46,7 @@ else
     cumPackSizeShift = circshift(cumPackSize,1);
     indPerExpPack = arrayfun(@(x,y)(y+1:x)', cumPackSize(1:end-1), cumPackSizeShift(1:end-1), 'uniformoutput', 0);
     
-    iSampInc = cell2mat(indPerExpPack(floor(tdTicksAdjI)));
+    iSampInc = cell2mat(indPerExpPack(int16(tdTicksAdjI)));
     sig(iSampInc) = bsTD.TimeDomainData;
     
 end
