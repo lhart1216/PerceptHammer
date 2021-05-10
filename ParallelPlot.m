@@ -1,8 +1,9 @@
-function out = ParallelPlot(t,in, varargin)
+function [p, out, offset] = ParallelPlot(t,in, varargin)
 % ===================
-% last edited 9/12/19
+% last edited 6/18/20
 % ===================
-% This plots signals with offset y-axes so they can be visually compared
+% This plots signals with offset y-axes so they can be visually compared.
+% Plots first signal at top of the figure, and then goes down.
 % ===================
 % Input Variables:
 % t = time vector 
@@ -11,7 +12,9 @@ function out = ParallelPlot(t,in, varargin)
 % otherwise, it is 1.5x the largest signal amplitude
 % ===================
 % Output Variables:
-% out = the offset signals
+% p = handle to line plot with the signals
+% out = the values of the offset signals
+% offset = the offset used between signals
 % ===================
 % Internal Variables:
 % avg = means of channels
@@ -39,19 +42,18 @@ if size(t,2)>size(t,1)
 end
 
 %% demeans signals
-avg = mean(in);
+avg = mean(in, 'omitnan');
 demean = in - repmat(avg,size(in,1),1);
 
 %% finds amplitudes of signals, and uses these to calculate the offset if not defined by the user
 ranges = max(demean)-min(demean);
 maxR = max(ranges);
 if offset == 0
-    offset = maxR*1.5;
+    offset = maxR*1.05;
 end
 out = demean - repmat(offset*(0:(size(in,2)-1)),size(in,1),1);
 
 %% plots
-plot(t,out);
+p = plot(t,out);
 
-end
 
