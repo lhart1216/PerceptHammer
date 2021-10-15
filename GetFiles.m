@@ -36,7 +36,12 @@ function p_out = GetFiles(p_in)
 
 %% defining parameters for cellfun used multiple times below
 uo = {'uniformoutput', 0};
-sl = SlDefine;
+if ispc
+    sl = '\';
+else
+    sl = '/';
+end
+
 
 %% Extracts subfolder and files
 
