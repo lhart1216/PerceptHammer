@@ -1,4 +1,5 @@
 function [pSig, pTemps] = PlotTempMatch(sig, fs, template, locs, scaled)
+
 % Plots the template matches on top of the initial signal
 % INPUT
 % sig = signal (expects column vector)
