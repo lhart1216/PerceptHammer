@@ -2,11 +2,11 @@ fn = '~/Documents/Fellowship/Research/ADAPT-PD/Json/MW_Report_Json_Session_Repor
  data = LoadJson(fn);
 %% Left
 
-thresh.L = [data.Groups.Final(1).ProgramSettings.SensingChannel(1).LowerLfpThreshold...
-          data.Groups.Final(1).ProgramSettings.SensingChannel(1).UpperLfpThreshold];
+thresh.L = [data.Groups.Initial(1).ProgramSettings.SensingChannel(1).LowerLfpThreshold...
+          data.Groups.Initial(1).ProgramSettings.SensingChannel(1).UpperLfpThreshold];
 
-stim.L = [data.Groups.Final(1).ProgramSettings.SensingChannel(1).LowerLimitInMilliAmps ...
-        data.Groups.Final(1).ProgramSettings.SensingChannel(1).UpperLimitInMilliAmps];
+stim.L = [data.Groups.Initial(1).ProgramSettings.SensingChannel(1).LowerLimitInMilliAmps ...
+        data.Groups.Initial(1).ProgramSettings.SensingChannel(1).UpperLimitInMilliAmps];
       
       
 % 11/9
@@ -24,11 +24,11 @@ PlotTimeline(tlob, thresh.L, stim.L, 'LEFT')
 
 %% Right
 
-thresh.R = [data.Groups.Final(1).ProgramSettings.SensingChannel(2).LowerLfpThreshold...
-          data.Groups.Final(1).ProgramSettings.SensingChannel(2).UpperLfpThreshold];
+thresh.R = [data.Groups.Initial(1).ProgramSettings.SensingChannel(2).LowerLfpThreshold...
+          data.Groups.Initial(1).ProgramSettings.SensingChannel(2).UpperLfpThreshold];
 
-stim.R = [data.Groups.Final(1).ProgramSettings.SensingChannel(2).LowerLimitInMilliAmps ...
-        data.Groups.Final(1).ProgramSettings.SensingChannel(2).UpperLimitInMilliAmps];
+stim.R = [data.Groups.Initial(1).ProgramSettings.SensingChannel(2).LowerLimitInMilliAmps ...
+        data.Groups.Initial(1).ProgramSettings.SensingChannel(2).UpperLimitInMilliAmps];
       
       
 % 11/9
