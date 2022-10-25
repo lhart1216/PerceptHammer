@@ -12,7 +12,7 @@ function [sigClean, artRem, artLog, template] = RemoveNoiseTempMatch(sigOrig, fs
 %            (seconds)
 % fEst = estimated occurence rate of artifact (Hz). Can be either a scalar
 %        (what actual estimate is) or a vector that is a typical range
-%        (e.g. for ECG, 60-100) 
+%        (e.g. for ECG, [60-100]/60)  
 % tInc = vector with the start / stop of when the artifact is present in the
 %        signal (seconds). Can input [0 0] if want to just use whole
 %        signal 
